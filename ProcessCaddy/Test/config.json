@@ -1,0 +1,12 @@
+[
+	{
+		"name":"ping google dns",
+		"exec":"C:\\Windows\\System32\\PING.EXE",
+		"args":"-n 10 8.8.8.8"
+	},
+	{
+		"name":"ping alt google dns",
+		"exec":"C:\\Windows\\System32\\PING.EXE",
+		"args":"-n 5 8.8.4.4"
+	}
+]
