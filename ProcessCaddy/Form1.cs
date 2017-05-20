@@ -59,6 +59,20 @@ namespace ProcessCaddy
 
 		}
 
+		delegate void SetTextCallback( int index, ProcessManager.Status status );
+
+		private void SetSubItemText( int index, ProcessManager.Status status )  
+		{  
+			if (this.listView1.InvokeRequired)  
+			{     
+				SetTextCallback d = new SetTextCallback( SetSubItemText );  
+				this.Invoke( d, new object[] { index, status } ); 
+			}  
+			else  
+			{  
+				listView1.Items[ index ].SubItems[ 1 ] = new ListViewItem.ListViewSubItem( listView1.Items[ index ], status.ToString()) ;
+			}  
+		} 
 		private void OnEvent( string evt )
 		{
 			if ( evt.CompareTo( "ConfigLoaded" ) == 0 )
@@ -66,13 +80,23 @@ namespace ProcessCaddy
 				for ( int i = 0; i < m_processManager.Count; i++ )
 				{
 					Database.Entry entry = m_processManager.GetEntryAtIndex(i);
-
 					ListViewItem listitem = new ListViewItem( entry.name );
 					listitem.SubItems.Add( "Idle" );
 					listView1.Items.Add( listitem );
 				}
 
 				SizeLastColumn(listView1);
+			}
+
+			if ( evt.CompareTo( "StatusUpdated" ) == 0 )
+			{
+				Console.WriteLine("Form1: StatusUpdated");
+
+				for ( int i = 0; i < m_processManager.Count; i++ )
+				{
+					ProcessManager.Status status = m_processManager.GetProcessStatus( i );
+					SetSubItemText( i, status );
+				}
 			}
 		}
 
@@ -103,10 +127,9 @@ namespace ProcessCaddy
 		{
 			if ( listView1.SelectedItems.Count > 0 )
 			{
-				//Console.WriteLine( listView1.SelectedItems[0].GetType().ToString() );
-				//Console.WriteLine( listView1.SelectedItems[0].Index.ToString() );
-
 				m_processManager.Launch( listView1.SelectedItems[0].Index );
+
+				listView1.SelectedItems.Clear();
 			}
 		}
 
@@ -114,10 +137,8 @@ namespace ProcessCaddy
 		{
 			if ( listView1.SelectedItems.Count > 0 )
 			{
-				//Console.WriteLine( listView1.SelectedItems[0].GetType().ToString() );
-				//Console.WriteLine( listView1.SelectedItems[0].Index.ToString() );
-
 				m_processManager.Stop( listView1.SelectedItems[0].Index );
+				listView1.SelectedItems.Clear();
 			}
 		}
 
