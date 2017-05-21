@@ -13,9 +13,11 @@ namespace ProcessCaddy
 		public class ProcessEntry
 		{
 			public Process process;
+			public ProcessStartInfo pinfo;
 			public string name;
 			public string exec;
 			public string args;
+			public bool relaunchOnExit;
 		}
 
 		public enum Status
@@ -113,10 +115,17 @@ namespace ProcessCaddy
 				if ( m_processList[i].process == proc )
 				{
 					m_processList[i].process = null;
+
+					if ( m_processList[i].relaunchOnExit )
+					{
+						LaunchInternal( m_processList[i] );
+					}
 				}
 			}
 
 			m_onEvent?.Invoke("StatusUpdated");
+
+
 		}
 
 		public bool Launch( int index )
@@ -134,23 +143,29 @@ namespace ProcessCaddy
 				}
 			}
 
-			ProcessStartInfo pinfo = new ProcessStartInfo( entry.exec );
+			entry.pinfo = new ProcessStartInfo( entry.exec );
 			string workingDirectory = Path.GetDirectoryName( entry.exec );
-			pinfo.WorkingDirectory = workingDirectory;
-			pinfo.Arguments = entry.args;
+			entry.pinfo.WorkingDirectory = workingDirectory;
+			entry.pinfo.Arguments = entry.args;
 
+			return LaunchInternal( entry );
+		}
+
+		private bool LaunchInternal( ProcessEntry entry )
+		{
 			try
 			{ 
-				entry.process = Process.Start( pinfo );
+				entry.process = Process.Start( entry.pinfo );
 				entry.process.EnableRaisingEvents = true;
 				entry.process.Exited += OnProcessExit;
+				entry.relaunchOnExit = true;
 
 				Console.WriteLine( "Launch process: " + entry.process.Id );
 				m_onEvent?.Invoke("StatusUpdated");
 				return true;
 			} catch ( System.Exception )
 			{
-				//TODO: Display error dialog
+				m_onEvent?.Invoke("LaunchFailure");
 			}
 
 			return false;
@@ -168,15 +183,33 @@ namespace ProcessCaddy
 
 			try
 			{
+				entry.relaunchOnExit = false;
 				entry.process.Kill();
 				return true;
 			}
 			catch( System.Exception )
 			{
 				//TODO: Display error dialog
+				m_onEvent?.Invoke("StopFailure");
 			}
 
 			return false;
+		}
+
+		public void LaunchAll()
+		{
+			for( int i = 0; i < m_processList.Count; i++ )
+			{
+				Launch( i );
+			}
+		}
+
+		public void StopAll()
+		{
+			for( int i = 0; i < m_processList.Count; i++ )
+			{
+				Stop( i );
+			}
 		}
 	}
 
