@@ -17,7 +17,7 @@ namespace ProcessCaddy
 			public string name;
 			public string exec;
 			public string args;
-			public bool relaunchOnExit;
+			public bool restartOnExit;
 		}
 
 		public enum Status
@@ -116,9 +116,9 @@ namespace ProcessCaddy
 				{
 					m_processList[i].process = null;
 
-					if ( m_processList[i].relaunchOnExit )
+					if ( m_processList[i].restartOnExit )
 					{
-						LaunchInternal( m_processList[i] );
+						StartInternal( m_processList[i] );
 					}
 				}
 			}
@@ -128,10 +128,8 @@ namespace ProcessCaddy
 
 		}
 
-		public bool Launch( int index )
+		public bool Start( int index )
 		{
-			Console.WriteLine("Launch index: " + index);
-
 			ProcessEntry entry = m_processList[ index ];
 
 			if ( entry.process != null )
@@ -148,24 +146,22 @@ namespace ProcessCaddy
 			entry.pinfo.WorkingDirectory = workingDirectory;
 			entry.pinfo.Arguments = entry.args;
 
-			return LaunchInternal( entry );
+			return StartInternal( entry );
 		}
 
-		private bool LaunchInternal( ProcessEntry entry )
+		private bool StartInternal( ProcessEntry entry )
 		{
 			try
 			{ 
 				entry.process = Process.Start( entry.pinfo );
 				entry.process.EnableRaisingEvents = true;
 				entry.process.Exited += OnProcessExit;
-				entry.relaunchOnExit = true;
-
-				Console.WriteLine( "Launch process: " + entry.process.Id );
+				entry.restartOnExit = true;
 				m_onEvent?.Invoke("StatusUpdated");
 				return true;
 			} catch ( System.Exception )
 			{
-				m_onEvent?.Invoke("LaunchFailure");
+				m_onEvent?.Invoke("StartFailure");
 			}
 
 			return false;
@@ -183,7 +179,7 @@ namespace ProcessCaddy
 
 			try
 			{
-				entry.relaunchOnExit = false;
+				entry.restartOnExit = false;
 				entry.process.Kill();
 				return true;
 			}
@@ -196,11 +192,11 @@ namespace ProcessCaddy
 			return false;
 		}
 
-		public void LaunchAll()
+		public void StartAll()
 		{
 			for( int i = 0; i < m_processList.Count; i++ )
 			{
-				Launch( i );
+				Start( i );
 			}
 		}
 

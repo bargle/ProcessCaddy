@@ -95,9 +95,9 @@ namespace ProcessCaddy
 				}
 			}
 
-			if ( evt.CompareTo( "LaunchFailure" ) == 0 )
+			if ( evt.CompareTo( "StartFailure" ) == 0 )
 			{
-				MessageBox.Show( "Failed to launch application. Please review the config.json for errors.", "Error" );
+				MessageBox.Show( "Failed to start application. Please review the config.json for errors.", "Error" );
 			}
 
 			if ( evt.CompareTo( "StopFailure" ) == 0 )
@@ -131,7 +131,7 @@ namespace ProcessCaddy
 		{
 			if ( listView1.SelectedItems.Count > 0 )
 			{
-				m_processManager.Launch( listView1.SelectedItems[0].Index );
+				m_processManager.Start( listView1.SelectedItems[0].Index );
 			}
 		}
 
@@ -157,9 +157,9 @@ namespace ProcessCaddy
 			Application.Exit();
 		}
 
-		private void launchAllToolStripMenuItem_Click(object sender, EventArgs e)
+		private void startAllToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			m_processManager.LaunchAll();
+			m_processManager.StartAll();
 		}
 
 		private void stopAllToolStripMenuItem_Click(object sender, EventArgs e)

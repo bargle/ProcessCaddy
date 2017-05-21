@@ -38,7 +38,7 @@
 			this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.processesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.launchAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.startAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.stopAllToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
 			this.contextMenuStrip1.SuspendLayout();
 			this.menuStrip1.SuspendLayout();
@@ -80,8 +80,8 @@
 			// 
 			this.testToolStripMenuItem.Name = "testToolStripMenuItem";
 			this.testToolStripMenuItem.Size = new System.Drawing.Size(152, 26);
-			this.testToolStripMenuItem.Text = "Launch All";
-			this.testToolStripMenuItem.Click += new System.EventHandler(this.launchAllToolStripMenuItem_Click);
+			this.testToolStripMenuItem.Text = "Start All";
+			this.testToolStripMenuItem.Click += new System.EventHandler(this.startAllToolStripMenuItem_Click);
 			// 
 			// stopAllToolStripMenuItem
 			// 
@@ -120,18 +120,18 @@
 			// processesToolStripMenuItem
 			// 
 			this.processesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.launchAllToolStripMenuItem,
+            this.startAllToolStripMenuItem,
             this.stopAllToolStripMenuItem1});
 			this.processesToolStripMenuItem.Name = "processesToolStripMenuItem";
 			this.processesToolStripMenuItem.Size = new System.Drawing.Size(84, 24);
 			this.processesToolStripMenuItem.Text = "Processes";
 			// 
-			// launchAllToolStripMenuItem
+			// startAllToolStripMenuItem
 			// 
-			this.launchAllToolStripMenuItem.Name = "launchAllToolStripMenuItem";
-			this.launchAllToolStripMenuItem.Size = new System.Drawing.Size(152, 26);
-			this.launchAllToolStripMenuItem.Text = "Launch All";
-			this.launchAllToolStripMenuItem.Click += new System.EventHandler(this.launchAllToolStripMenuItem_Click);
+			this.startAllToolStripMenuItem.Name = "startAllToolStripMenuItem";
+			this.startAllToolStripMenuItem.Size = new System.Drawing.Size(152, 26);
+			this.startAllToolStripMenuItem.Text = "Start All";
+			this.startAllToolStripMenuItem.Click += new System.EventHandler(this.startAllToolStripMenuItem_Click);
 			// 
 			// stopAllToolStripMenuItem1
 			// 
@@ -170,7 +170,7 @@
 		private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem stopAllToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem processesToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem launchAllToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem startAllToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem stopAllToolStripMenuItem1;
 	}
 }
