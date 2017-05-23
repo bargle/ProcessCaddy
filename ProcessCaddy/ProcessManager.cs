@@ -2,6 +2,8 @@
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace ProcessCaddy
 { 
@@ -149,6 +151,7 @@ namespace ProcessCaddy
 			return StartInternal( entry );
 		}
 
+		[DllImport("user32.dll")]static extern bool SetWindowText(IntPtr hWnd, string text);
 		private bool StartInternal( ProcessEntry entry )
 		{
 			try
@@ -157,6 +160,14 @@ namespace ProcessCaddy
 				entry.process.EnableRaisingEvents = true;
 				entry.process.Exited += OnProcessExit;
 				entry.restartOnExit = true;
+
+				if ( entry.name.Length > 0 )
+				{ 
+					//Give a short delay to allow the window to get created.
+					Thread.Sleep( 250 );
+					SetWindowText( entry.process.MainWindowHandle, entry.name );
+				}
+
 				m_onEvent?.Invoke("StatusUpdated");
 				return true;
 			} catch ( System.Exception )
