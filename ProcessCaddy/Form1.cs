@@ -9,11 +9,20 @@ namespace ProcessCaddy
     {
 		ProcessManager m_processManager = new ProcessManager();
 		Database m_database = new Database();
+		Timer m_timer = new Timer();
 
         public Form1()
         {
             InitializeComponent();
+			m_timer.Tick += Update;
+			m_timer.Interval = 1000;
+			m_timer.Enabled = true;
         }
+
+		void Update(object sender, EventArgs e)
+		{
+			m_processManager.Update();
+		}
 
 		private void listView1_DrawColumnHeader( object sender, DrawListViewColumnHeaderEventArgs e )
 		{

@@ -8,9 +8,10 @@ using System.Runtime.InteropServices;
 namespace ProcessCaddy
 { 
 	public delegate void OnEventFn( string evt );
-	public class ProcessManager
+	public class ProcessManager : IProcessManager
 	{
 		Database m_database = new Database();
+		HeartbeatMonitor m_heartbeatMonitor;
 		OnEventFn m_onEvent;
 		public class ProcessEntry
 		{
@@ -32,7 +33,7 @@ namespace ProcessCaddy
 
 		public ProcessManager()
 		{
-
+			m_heartbeatMonitor = new HeartbeatMonitor(this);
 		}
 
 		public void AddListener( OnEventFn fn )
@@ -82,6 +83,11 @@ namespace ProcessCaddy
 		public int Count
 		{
 			get { return m_processList.Count; }
+		}
+
+		public void Update()
+		{
+			m_heartbeatMonitor.Update();
 		}
 
 		public Database.Entry GetEntryAtIndex( int index )
@@ -163,8 +169,7 @@ namespace ProcessCaddy
 
 				if ( entry.name.Length > 0 )
 				{ 
-					//Give a short delay to allow the window to get created.
-					Thread.Sleep( 250 );
+					entry.process.WaitForInputIdle(500);
 					SetWindowText( entry.process.MainWindowHandle, entry.name );
 				}
 
@@ -203,6 +208,31 @@ namespace ProcessCaddy
 			return false;
 		}
 
+		public bool Restart(int index)
+		{
+			ProcessEntry entry = m_processList[index];
+
+			if (entry.process == null || entry.process.HasExited)
+			{
+				Console.WriteLine("Error: process already exited");
+				return true;
+			}
+
+			try
+			{
+				entry.restartOnExit = true;
+				entry.process.Kill();
+				return true;
+			}
+			catch (System.Exception)
+			{
+				//TODO: Display error dialog
+				m_onEvent?.Invoke("StopFailure");
+			}
+
+			return false;
+		}
+
 		public void StartAll()
 		{
 			for( int i = 0; i < m_processList.Count; i++ )
@@ -218,6 +248,33 @@ namespace ProcessCaddy
 				Stop( i );
 			}
 		}
+
+		#region IProcessManager
+		public bool FindProcessById(int pid)
+		{
+			foreach( ProcessEntry proc in m_processList )
+			{
+				if ( proc.process.Id == pid )
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public void RestartProcessById(int pid)
+		{
+			for( int i = 0; i < m_processList.Count; i++ )
+			{
+				if ( pid == m_processList[i].process.Id )
+				{
+					Restart(i);
+					return;
+				}
+			}
+		}
+		#endregion
 	}
 
 }
