@@ -70,6 +70,9 @@
     <Compile Include="Form2.Designer.cs">
       <DependentUpon>Form2.cs</DependentUpon>
     </Compile>
+    <Compile Include="HeartbeatMonitor.cs" />
+    <Compile Include="IProcessManager.cs" />
+    <Compile Include="Packet.cs" />
     <Compile Include="ProcessManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

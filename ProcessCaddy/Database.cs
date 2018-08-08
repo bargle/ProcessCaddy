@@ -27,7 +27,7 @@ namespace ProcessCaddy
 
 		public bool Load( string path )
 		{
-			using (StreamReader reader = new StreamReader( path ))
+			using ( StreamReader reader = new StreamReader( path ) )
 			{
 				if ( reader == null )
 				{
