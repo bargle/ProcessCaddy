@@ -7,6 +7,9 @@ ProcessCaddy is configured via a single JSON file which lists each application t
 ## Main Window
 ![image](ProcessCaddy/img/main_dialog.png)
 
+## Configuration
+ProcessCaddy requires a config.json file to live in the same folder as the EXE. It is a simple listing of the applications that are to be controlled and monitored. Each entry has 3 variables, name, path to exe, and command line arguments. The "args" variable is optional and can be omitted if not needed.
+
 ## Example config.json
 ```
 [
