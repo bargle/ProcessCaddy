@@ -254,7 +254,7 @@ namespace ProcessCaddy
 		{
 			foreach( ProcessEntry proc in m_processList )
 			{
-				if ( proc.process.Id == pid )
+				if (proc != null && proc.process != null && proc.process.Id == pid )
 				{
 					return true;
 				}
