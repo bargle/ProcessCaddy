@@ -168,8 +168,9 @@ namespace ProcessCaddy
 				entry.restartOnExit = true;
 
 				if ( entry.name.Length > 0 )
-				{ 
-					entry.process.WaitForInputIdle(500);
+				{
+                    //entry.process.WaitForInputIdle(500);
+                    Thread.Sleep(500);
 					SetWindowText( entry.process.MainWindowHandle, entry.name );
 				}
 
