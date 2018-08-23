@@ -12,6 +12,7 @@ namespace ProcessCaddy
 	{
 		Database m_database = new Database();
 		HeartbeatMonitor m_heartbeatMonitor;
+		List<INotificationReceiver> m_notificationReceivers = new List<INotificationReceiver>();
 		OnEventFn m_onEvent;
 		public class ProcessEntry
 		{
@@ -36,24 +37,24 @@ namespace ProcessCaddy
 			m_heartbeatMonitor = new HeartbeatMonitor(this);
 		}
 
-		public void AddListener( OnEventFn fn )
+		public void AddListener(OnEventFn fn)
 		{
 			m_onEvent += fn;
 		}
 
-		public Status GetProcessStatus( int index )
+		public Status GetProcessStatus(int index)
 		{
-			if ( index < 0 || index >= m_processList.Count )
+			if (index < 0 || index >= m_processList.Count)
 			{
 				return Status.Idle;
 			}
 
-			if ( m_processList[index].process == null )
+			if (m_processList[index].process == null)
 			{
 				return Status.Idle;
 			}
 
-			if ( m_processList[index].process.HasExited )
+			if (m_processList[index].process.HasExited)
 			{
 				return Status.Idle;
 			}
@@ -63,16 +64,16 @@ namespace ProcessCaddy
 
 		public bool Init()
 		{
-			if ( !m_database.Load( "config.json" ) )
+			if (!m_database.Load("config.json"))
 			{
 				return false;
 			}
 
 			m_processList.Clear();
 
-			foreach( Database.Entry entry in m_database.Entries )
+			foreach (Database.Entry entry in m_database.Entries)
 			{
-				AddProcess( entry.name, entry.exec, entry.args );
+				AddProcess(entry.name, entry.exec, entry.args);
 			}
 
 			m_onEvent?.Invoke("ConfigLoaded");
@@ -90,9 +91,9 @@ namespace ProcessCaddy
 			m_heartbeatMonitor.Update();
 		}
 
-		public Database.Entry GetEntryAtIndex( int index )
+		public Database.Entry GetEntryAtIndex(int index)
 		{
-			if ( index < 0 || index >= m_database.Entries.Count )
+			if (index < 0 || index >= m_database.Entries.Count)
 			{
 				throw new ArgumentOutOfRangeException();
 			}
@@ -100,7 +101,7 @@ namespace ProcessCaddy
 			return m_database.Entries[index];
 		}
 
-		public int AddProcess( string name, string exec, string args )
+		public int AddProcess(string name, string exec, string args)
 		{
 			ProcessEntry entry = new ProcessEntry();
 
@@ -108,7 +109,7 @@ namespace ProcessCaddy
 			entry.exec = exec;
 			entry.args = args;
 
-			m_processList.Add( entry );
+			m_processList.Add(entry);
 
 			return m_processList.Count - 1; //this is the index now assigned to the process.
 		}
@@ -118,15 +119,17 @@ namespace ProcessCaddy
 			Process proc = (Process)sender;
 			Console.WriteLine("Process exited: " + proc.Id);
 
-			for( int i = 0; i < m_processList.Count; i++ )
+			for (int i = 0; i < m_processList.Count; i++)
 			{
-				if ( m_processList[i].process == proc )
+				if (m_processList[i].process == proc)
 				{
 					m_processList[i].process = null;
 
-					if ( m_processList[i].restartOnExit )
+					OnProcessExited( m_processList[i] );
+
+					if (m_processList[i].restartOnExit)
 					{
-						StartInternal( m_processList[i] );
+						StartInternal(m_processList[i]);
 					}
 				}
 			}
@@ -136,47 +139,49 @@ namespace ProcessCaddy
 
 		}
 
-		public bool Start( int index )
+		public bool Start(int index)
 		{
-			ProcessEntry entry = m_processList[ index ];
+			ProcessEntry entry = m_processList[index];
 
-			if ( entry.process != null )
+			if (entry.process != null)
 			{
-				if ( !entry.process.HasExited )
-				{ 
+				if (!entry.process.HasExited)
+				{
 					Console.WriteLine("Error: process already started");
 					return false;
 				}
 			}
 
-			entry.pinfo = new ProcessStartInfo( entry.exec );
-			string workingDirectory = Path.GetDirectoryName( entry.exec );
+			entry.pinfo = new ProcessStartInfo(entry.exec);
+			string workingDirectory = Path.GetDirectoryName(entry.exec);
 			entry.pinfo.WorkingDirectory = workingDirectory;
 			entry.pinfo.Arguments = entry.args;
 
-			return StartInternal( entry );
+			return StartInternal(entry);
 		}
 
-		[DllImport("user32.dll")]static extern bool SetWindowText(IntPtr hWnd, string text);
-		private bool StartInternal( ProcessEntry entry )
+		[DllImport("user32.dll")] static extern bool SetWindowText(IntPtr hWnd, string text);
+		private bool StartInternal(ProcessEntry entry)
 		{
 			try
-			{ 
-				entry.process = Process.Start( entry.pinfo );
+			{
+				entry.process = Process.Start(entry.pinfo);
 				entry.process.EnableRaisingEvents = true;
 				entry.process.Exited += OnProcessExit;
 				entry.restartOnExit = true;
 
-				if ( entry.name.Length > 0 )
+				if (entry.name.Length > 0)
 				{
-                    //entry.process.WaitForInputIdle(500);
-                    Thread.Sleep(500);
-					SetWindowText( entry.process.MainWindowHandle, entry.name );
+					//entry.process.WaitForInputIdle(500);
+					Thread.Sleep(500);
+					SetWindowText(entry.process.MainWindowHandle, entry.name);
 				}
+
+				OnProcessStarted( entry );
 
 				m_onEvent?.Invoke("StatusUpdated");
 				return true;
-			} catch ( System.Exception )
+			} catch (System.Exception)
 			{
 				m_onEvent?.Invoke("StartFailure");
 			}
@@ -184,11 +189,11 @@ namespace ProcessCaddy
 			return false;
 		}
 
-		public bool Stop( int index )
+		public bool Stop(int index)
 		{
-			ProcessEntry entry = m_processList[ index ];
+			ProcessEntry entry = m_processList[index];
 
-			if ( entry.process == null || entry.process.HasExited )
+			if (entry.process == null || entry.process.HasExited)
 			{
 				Console.WriteLine("Error: process already exited");
 				return false;
@@ -198,9 +203,10 @@ namespace ProcessCaddy
 			{
 				entry.restartOnExit = false;
 				entry.process.Kill();
+				OnProcessStopped( entry );
 				return true;
 			}
-			catch( System.Exception )
+			catch (System.Exception)
 			{
 				//TODO: Display error dialog
 				m_onEvent?.Invoke("StopFailure");
@@ -223,6 +229,7 @@ namespace ProcessCaddy
 			{
 				entry.restartOnExit = true;
 				entry.process.Kill();
+				OnProcessStopped( entry );
 				return true;
 			}
 			catch (System.Exception)
@@ -236,26 +243,26 @@ namespace ProcessCaddy
 
 		public void StartAll()
 		{
-			for( int i = 0; i < m_processList.Count; i++ )
+			for (int i = 0; i < m_processList.Count; i++)
 			{
-				Start( i );
+				Start(i);
 			}
 		}
 
 		public void StopAll()
 		{
-			for( int i = 0; i < m_processList.Count; i++ )
+			for (int i = 0; i < m_processList.Count; i++)
 			{
-				Stop( i );
+				Stop(i);
 			}
 		}
 
 		#region IProcessManager
 		public bool FindProcessById(int pid)
 		{
-			foreach( ProcessEntry proc in m_processList )
+			foreach (ProcessEntry proc in m_processList)
 			{
-				if (proc != null && proc.process != null && proc.process.Id == pid )
+				if (proc != null && proc.process != null && proc.process.Id == pid)
 				{
 					return true;
 				}
@@ -266,16 +273,63 @@ namespace ProcessCaddy
 
 		public void RestartProcessById(int pid)
 		{
-			for( int i = 0; i < m_processList.Count; i++ )
+			for (int i = 0; i < m_processList.Count; i++)
 			{
-				if ( pid == m_processList[i].process.Id )
+				if (pid == m_processList[i].process.Id)
 				{
 					Restart(i);
 					return;
 				}
 			}
 		}
+
+		public void RegisterForNotifications( INotificationReceiver receiver )
+		{
+			if ( !m_notificationReceivers.Contains( receiver ) )
+			{
+				m_notificationReceivers.Add( receiver );
+			}
+		}
+		public void UnregisterFromNotifications( INotificationReceiver receiver )
+		{
+			if ( m_notificationReceivers.Contains( receiver ) )
+			{
+				m_notificationReceivers.Remove( receiver );
+			}
+		}
+
+
 		#endregion
+
+		void OnProcessStarted(ProcessManager.ProcessEntry entry)
+		{
+			foreach( INotificationReceiver recv in m_notificationReceivers )
+			{
+				recv.OnProcessStarted( entry );
+			}
+		}
+		void OnProcessStopped(ProcessManager.ProcessEntry entry)
+		{
+			foreach ( INotificationReceiver recv in m_notificationReceivers)
+			{
+				recv.OnProcessStopped(entry);
+			}
+		}
+		void OnProcessExited(ProcessManager.ProcessEntry entry)
+		{
+			foreach ( INotificationReceiver recv in m_notificationReceivers)
+			{
+				recv.OnProcessExited(entry);
+			}
+		}
+		void OnProcessRestarted(ProcessManager.ProcessEntry entry)
+		{
+			foreach ( INotificationReceiver recv in m_notificationReceivers)
+			{
+				recv.OnProcessRestarted(entry);
+			}
+		}
+
 	}
 
 }

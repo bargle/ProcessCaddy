@@ -22,3 +22,19 @@ ProcessCaddy requires a config.json file to live in the same folder as the EXE. 
 ```
 
 The double backslashes are required for the JSON file to be properly parsed.
+
+## Discord Webhooks
+Version 1.4 brings support for reporting start/stop/exit events to a Discord channel via Discord's Webhook API. 
+The discord.json file controls this functionality.
+
+To enable these events, create a webhook on the channel and grab the URL generated. Create a discord.json file next to the ProcessCaddy EXE in the following format:
+
+## Example discord.json
+```
+[
+  {
+    "enabled" : true,
+    "URI" : "https://discordapp.com/api/webhooks/<CHANNEL_ID>/<HOOK>"
+  }
+]
+```

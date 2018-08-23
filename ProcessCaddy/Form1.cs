@@ -10,6 +10,7 @@ namespace ProcessCaddy
 		ProcessManager m_processManager = new ProcessManager();
 		Database m_database = new Database();
 		Timer m_timer = new Timer();
+		DiscordNotifier m_notifier;
 
         public Form1()
         {
@@ -17,7 +18,9 @@ namespace ProcessCaddy
 			m_timer.Tick += Update;
 			m_timer.Interval = 1000;
 			m_timer.Enabled = true;
-        }
+
+			m_notifier = new DiscordNotifier( m_processManager );
+		}
 
 		void Update(object sender, EventArgs e)
 		{
