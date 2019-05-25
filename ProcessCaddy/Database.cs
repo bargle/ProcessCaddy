@@ -13,6 +13,7 @@ namespace ProcessCaddy
 			public string name;
 			public string exec;
 			public string args;
+			public bool startOnLaunch;
 		}
 
 		List<Entry> m_entries = new List<Entry>();

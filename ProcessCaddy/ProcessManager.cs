@@ -21,6 +21,7 @@ namespace ProcessCaddy
 			public string name;
 			public string exec;
 			public string args;
+			public bool startOnLaunch;
 			public bool restartOnExit;
 		}
 
@@ -73,10 +74,18 @@ namespace ProcessCaddy
 
 			foreach (Database.Entry entry in m_database.Entries)
 			{
-				AddProcess(entry.name, entry.exec, entry.args);
+				AddProcess(entry.name, entry.exec, entry.args, entry.startOnLaunch);
 			}
 
 			m_onEvent?.Invoke("ConfigLoaded");
+
+			for ( int processIndex = 0; processIndex < m_processList.Count; processIndex++ )
+			{
+				if ( m_processList[processIndex].startOnLaunch == true )
+				{
+					Start( processIndex );
+				}
+			}
 
 			return true;
 		}
@@ -101,13 +110,14 @@ namespace ProcessCaddy
 			return m_database.Entries[index];
 		}
 
-		public int AddProcess(string name, string exec, string args)
+		public int AddProcess(string name, string exec, string args, bool startOnLaunch)
 		{
 			ProcessEntry entry = new ProcessEntry();
 
 			entry.name = name;
 			entry.exec = exec;
 			entry.args = args;
+			entry.startOnLaunch = startOnLaunch;
 
 			m_processList.Add(entry);
 
